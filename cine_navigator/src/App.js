@@ -249,7 +249,134 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import SearchBar from './components/SearchBar';
 
-// ...Header, MovieGrid, WatchlistSidebar, TheaterSection (as above)...
+// PUBLIC_INTERFACE
+function Header({ onSearch, isSearching }) {
+  /**
+   * Header component: Contains app logo and integrated search bar.
+   */
+  return (
+    <nav className="navbar">
+      <div className="container" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+        <div className="logo">
+          <span className="logo-symbol">*</span> CineNavigator
+        </div>
+        <SearchBar onSearch={onSearch} isSearching={isSearching} />
+      </div>
+    </nav>
+  );
+}
+
+/**
+ * Helper: Display a grid of movies.
+ * Used for both "Now Playing" and search results.
+ */
+function MovieGrid({ movies, loading, error, gridTitle }) {
+  if (loading) {
+    return (
+      <section className="movie-grid-section" style={{ flex: 3, minWidth: 0 }}>
+        <div className="container" style={{ paddingTop: 120, textAlign: 'center' }}>
+          <h2 style={{ color: 'var(--accent)', marginBottom: 24 }}>{gridTitle}</h2>
+          <div style={{ color: 'var(--text-secondary)', fontSize: 18, padding: 40 }}>
+            Loading movies...
+          </div>
+        </div>
+      </section>
+    );
+  }
+  if (error) {
+    return (
+      <section className="movie-grid-section" style={{ flex: 3, minWidth: 0 }}>
+        <div className="container" style={{ paddingTop: 120, textAlign: 'center' }}>
+          <h2 style={{ color: 'var(--accent)', marginBottom: 24 }}>{gridTitle}</h2>
+          <div style={{ color: '#ff6565', fontSize: 18, padding: 40 }}>
+            {error}
+          </div>
+        </div>
+      </section>
+    );
+  }
+  return (
+    <section className="movie-grid-section" style={{ flex: 3, minWidth: 0 }}>
+      <div className="container" style={{ paddingTop: 120 }}>
+        <h2 style={{ color: 'var(--accent)', marginBottom: 24 }}>{gridTitle}</h2>
+        <div
+          className="movie-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: 24,
+          }}
+        >
+          {movies.length === 0 ? (
+            <div style={{ color: "var(--text-secondary)", fontSize: 18, gridColumn: "1/-1" }}>
+              No movies found.
+            </div>
+          ) : (
+            movies.map((movie) => (
+              <div
+                key={movie.id}
+                className="movie-card"
+                style={{
+                  background: 'var(--secondary)',
+                  borderRadius: 8,
+                  padding: 16,
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  minHeight: 320,
+                }}
+                tabIndex={0}
+                aria-label={movie.title}
+              >
+                {/* Movie poster */}
+                {movie.poster_path ? (
+                  <img
+                    src={`https://image.tmdb.org/t/p/w342/${movie.poster_path}`}
+                    alt={movie.title}
+                    style={{
+                      width: 110,
+                      height: 162,
+                      objectFit: 'cover',
+                      borderRadius: 4,
+                      marginBottom: 12,
+                      background: '#282828',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 110,
+                      height: 162,
+                      background: 'rgba(255,255,255,0.06)',
+                      borderRadius: 4,
+                      marginBottom: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--text-secondary)',
+                      fontSize: 32,
+                    }}
+                    aria-label="No poster available"
+                  >
+                    🎬
+                  </div>
+                )}
+                {/* Movie title */}
+                <div style={{ color: 'var(--text-color)', fontWeight: 600, textAlign: 'center', marginBottom: 8 }}>
+                  {movie.title}
+                </div>
+                <button className="btn" style={{ marginTop: 'auto' }} disabled>
+                  + Watchlist
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 // PUBLIC_INTERFACE
 function App() {
