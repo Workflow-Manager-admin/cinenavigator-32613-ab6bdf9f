@@ -1,13 +1,12 @@
 import React from "react";
 
-// PUBLIC_INTERFACE
-function NearbyTheaters() {
-  /**
-   * NearbyTheaters component: 
-   * - Shows a responsive list of top manually-defined theaters, with directions link to Google Maps.
-   * - Optionally embeds a small Google Map if environment variable is set.
-   * - API key is never exposed outside of the embed where required.
-   */
+/**
+ * PUBLIC_INTERFACE
+ * NearbyTheaters component: Shows a responsive list of top manually-defined theaters, with directions link to Google Maps.
+ * Optionally embeds a small Google Map if environment variable is set.
+ * Accepts optional onTheaterDirections prop for analytics event tracking.
+ */
+function NearbyTheaters({ onTheaterDirections }) {
 
   // Define your top theaters manually.
   // Each theater should have a name, address, and if desired, a lat/lng for map links.
@@ -194,6 +193,11 @@ function NearbyTheaters() {
                       display: "inline-block",
                     }}
                     aria-label={`Open Google Maps Directions for ${theater.name}`}
+                    onClick={() => {
+                      if (typeof onTheaterDirections === 'function') {
+                        onTheaterDirections(theater);
+                      }
+                    }}
                   >
                     Directions
                   </a>
