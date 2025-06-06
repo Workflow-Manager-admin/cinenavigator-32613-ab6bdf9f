@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import SearchBar from './components/SearchBar';
+import Watchlist, { useWatchlist } from './components/Watchlist';
 
 // PUBLIC_INTERFACE
 function Header({ onSearch, isSearching }) {
@@ -23,7 +24,12 @@ function Header({ onSearch, isSearching }) {
  * Helper: Display a grid of movies.
  * Used for both "Now Playing" and search results.
  */
-function MovieGrid({ movies, loading, error, gridTitle }) {
+function MovieGrid({ movies, loading, error, gridTitle, watchlistIds = [], onAddToWatchlist, onRemoveFromWatchlist }) {
+  /**
+   * Helper: Display a grid of movies.
+   * Used for both "Now Playing" and search results.
+   * Shows watchlist add/remove for each movie in grid.
+   */
   if (loading) {
     return (
       <section className="movie-grid-section" style={{ flex: 3, minWidth: 0 }}>
@@ -65,65 +71,84 @@ function MovieGrid({ movies, loading, error, gridTitle }) {
               No movies found.
             </div>
           ) : (
-            movies.map((movie) => (
-              <div
-                key={movie.id}
-                className="movie-card"
-                style={{
-                  background: 'var(--secondary)',
-                  borderRadius: 8,
-                  padding: 16,
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  minHeight: 320,
-                }}
-                tabIndex={0}
-                aria-label={movie.title}
-              >
-                {/* Movie poster */}
-                {movie.poster_path ? (
-                  <img
-                    src={`https://image.tmdb.org/t/p/w342/${movie.poster_path}`}
-                    alt={movie.title}
-                    style={{
-                      width: 110,
-                      height: 162,
-                      objectFit: 'cover',
-                      borderRadius: 4,
-                      marginBottom: 12,
-                      background: '#282828',
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: 110,
-                      height: 162,
-                      background: 'rgba(255,255,255,0.06)',
-                      borderRadius: 4,
-                      marginBottom: 12,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--text-secondary)',
-                      fontSize: 32,
-                    }}
-                    aria-label="No poster available"
-                  >
-                    🎬
+            movies.map((movie) => {
+              const inWatchlist = watchlistIds.includes(movie.id);
+              return (
+                <div
+                  key={movie.id}
+                  className="movie-card"
+                  style={{
+                    background: 'var(--secondary)',
+                    borderRadius: 8,
+                    padding: 16,
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    minHeight: 320,
+                  }}
+                  tabIndex={0}
+                  aria-label={movie.title}
+                >
+                  {/* Movie poster */}
+                  {movie.poster_path ? (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w342/${movie.poster_path}`}
+                      alt={movie.title}
+                      style={{
+                        width: 110,
+                        height: 162,
+                        objectFit: 'cover',
+                        borderRadius: 4,
+                        marginBottom: 12,
+                        background: '#282828',
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 110,
+                        height: 162,
+                        background: 'rgba(255,255,255,0.06)',
+                        borderRadius: 4,
+                        marginBottom: 12,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--text-secondary)',
+                        fontSize: 32,
+                      }}
+                      aria-label="No poster available"
+                    >
+                      🎬
+                    </div>
+                  )}
+                  {/* Movie title */}
+                  <div style={{ color: 'var(--text-color)', fontWeight: 600, textAlign: 'center', marginBottom: 8 }}>
+                    {movie.title}
                   </div>
-                )}
-                {/* Movie title */}
-                <div style={{ color: 'var(--text-color)', fontWeight: 600, textAlign: 'center', marginBottom: 8 }}>
-                  {movie.title}
+                  {inWatchlist ? (
+                    <button
+                      className="btn"
+                      style={{ marginTop: 'auto', backgroundColor: '#4b3840', color: 'var(--accent)' }}
+                      onClick={() => onRemoveFromWatchlist(movie.id)}
+                      aria-label={`Remove ${movie.title} from watchlist`}
+                    >
+                      ✓ Added
+                    </button>
+                  ) : (
+                    <button
+                      className="btn"
+                      style={{ marginTop: 'auto' }}
+                      onClick={() => onAddToWatchlist(movie)}
+                      aria-label={`Add ${movie.title} to watchlist`}
+                    >
+                      + Watchlist
+                    </button>
+                  )}
                 </div>
-                <button className="btn" style={{ marginTop: 'auto' }} disabled>
-                  + Watchlist
-                </button>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -131,40 +156,7 @@ function MovieGrid({ movies, loading, error, gridTitle }) {
   );
 }
 
-// PUBLIC_INTERFACE
-function WatchlistSidebar() {
-  /**
-   * WatchlistSidebar component: Placeholder for watchlist (sidebar/modal).
-   */
-  // For now, it is a right sidebar.
-  return (
-    <aside
-      className="watchlist-sidebar"
-      style={{
-        background: 'var(--secondary)',
-        color: 'var(--text-color)',
-        minWidth: 270,
-        maxWidth: 340,
-        borderLeft: '1px solid var(--border-color)',
-        padding: 24,
-        position: 'sticky',
-        top: 90,
-        height: 'calc(100vh - 90px)',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 5,
-      }}
-    >
-      <h3 style={{ color: 'var(--accent)', marginTop: 0, marginBottom: 14 }}>🎞️ Watchlist</h3>
-      <div style={{ color: 'var(--text-secondary)', fontSize: 15 }}>
-        (Persistent via localStorage; add movies from the grid.)
-      </div>
-      <ul style={{ padding: 0, margin: 16, listStyle: 'none', flex: 1 }}>
-        <li style={{ marginBottom: 12, color: 'var(--text-secondary)' }}><em>Add movies to see them here.</em></li>
-      </ul>
-    </aside>
-  );
-}
+
 
 // PUBLIC_INTERFACE
 function TheaterSection() {
@@ -332,6 +324,9 @@ function App() {
     }
   }, [searchQuery]);
 
+  // --- WATCHLIST STATE & LOGIC ---
+  const [watchlist, addToWatchlist, removeFromWatchlist] = useWatchlist();
+
   // If searching, show search results; otherwise fall back to now playing
   const moviesToShow = searchQuery ? searchResults : nowPlaying;
   const loading = searchQuery ? searchLoading : nowPlayingLoading;
@@ -339,6 +334,20 @@ function App() {
   const gridTitle = searchQuery
     ? `Results for "${searchQuery}"`
     : "Now Playing";
+  const watchlistIds = watchlist.map((movie) => movie.id);
+
+  // Accessibility: Announce add/remove actions
+  // (optional, but omitted for brevity)
+
+  // Add to watchlist handler (passed to MovieGrid)
+  function handleAddToWatchlist(movie) {
+    addToWatchlist(movie);
+    // TODO: send event to GA4 in future
+  }
+  function handleRemoveFromWatchlist(movieId) {
+    removeFromWatchlist(movieId);
+    // TODO: send event to GA4 in future
+  }
 
   return (
     <div className="app" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--primary)' }}>
@@ -346,10 +355,22 @@ function App() {
       {/* Main content: grid layout with movie grid and watchlist sidebar */}
       <main style={{ display: 'flex', flex: 1, marginTop: 80, alignItems: 'flex-start' }}>
         {/* Movie grid section */}
-        <MovieGrid movies={moviesToShow} loading={loading} error={error} gridTitle={gridTitle} />
+        <MovieGrid
+          movies={moviesToShow}
+          loading={loading}
+          error={error}
+          gridTitle={gridTitle}
+          watchlistIds={watchlistIds}
+          onAddToWatchlist={handleAddToWatchlist}
+          onRemoveFromWatchlist={handleRemoveFromWatchlist}
+        />
         {/* Watchlist sidebar */}
         <div style={{ minWidth: 0 }}>
-          <WatchlistSidebar />
+          <Watchlist
+            watchlist={watchlist}
+            onRemove={handleRemoveFromWatchlist}
+            isSidebar={true}
+          />
         </div>
       </main>
       {/* Theaters section below main grid */}
