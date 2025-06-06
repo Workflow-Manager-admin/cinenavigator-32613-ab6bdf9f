@@ -245,18 +245,114 @@ function TheaterSection() {
   );
 }
 
+import React, { useState, useEffect } from 'react';
+import './App.css';
+import SearchBar from './components/SearchBar';
+
+// ...Header, MovieGrid, WatchlistSidebar, TheaterSection (as above)...
+
 // PUBLIC_INTERFACE
 function App() {
   /**
    * Main application container: Combines header, main content, watchlist, and theaters section.
+   * Handles search state and now playing fallback logic.
    */
+
+  // State for Now Playing
+  const [nowPlaying, setNowPlaying] = useState([]);
+  const [nowPlayingLoading, setNowPlayingLoading] = useState(true);
+  const [nowPlayingError, setNowPlayingError] = useState("");
+
+  // State for search
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
+
+  const apiKey = process.env.REACT_APP_TMDB_API_KEY;
+
+  // Fetch "Now Playing" on mount
+  useEffect(() => {
+    async function fetchNowPlaying() {
+      setNowPlayingLoading(true);
+      setNowPlayingError("");
+      if (!apiKey) {
+        setNowPlayingError("TMDB API Key not found. Check your environment variables.");
+        setNowPlayingLoading(false);
+        return;
+      }
+      try {
+        const res = await fetch(
+          `https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US&page=1`
+        );
+        if (!res.ok) throw new Error('Failed to fetch movies. Please check your API key.');
+        const data = await res.json();
+        if (!data.results) throw new Error('No data returned from TMDB.');
+        setNowPlaying(data.results);
+      } catch (err) {
+        setNowPlayingError(
+          err.message || "Something went wrong while fetching now playing movies."
+        );
+      } finally {
+        setNowPlayingLoading(false);
+      }
+    }
+    fetchNowPlaying();
+  }, [apiKey]);
+
+  // Search handler
+  async function handleMovieSearch(query) {
+    setSearchQuery(query);
+    setSearchResults([]);
+    setSearchLoading(true);
+    setSearchError("");
+    if (!apiKey) {
+      setSearchError("TMDB API Key not found. Check your environment variables.");
+      setSearchLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch(
+        `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(
+          query
+        )}`
+      );
+      if (!res.ok) throw new Error("TMDB search failed. Please check your API key.");
+      const data = await res.json();
+      setSearchResults(data.results || []);
+    } catch (err) {
+      setSearchError(
+        err.message || "Something went wrong while searching for movies."
+      );
+    } finally {
+      setSearchLoading(false);
+    }
+  }
+
+  // Clear search when SearchBar is empty (not covered by SearchBar, so here):
+  useEffect(() => {
+    if (searchQuery === "") {
+      setSearchResults([]);
+      setSearchError("");
+      setSearchLoading(false);
+    }
+  }, [searchQuery]);
+
+  // If searching, show search results; otherwise fall back to now playing
+  const moviesToShow = searchQuery ? searchResults : nowPlaying;
+  const loading = searchQuery ? searchLoading : nowPlayingLoading;
+  const error = searchQuery ? searchError : nowPlayingError;
+  const gridTitle = searchQuery
+    ? `Results for "${searchQuery}"`
+    : "Now Playing";
+
   return (
     <div className="app" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--primary)' }}>
-      <Header />
+      <Header onSearch={handleMovieSearch} isSearching={searchLoading} />
       {/* Main content: grid layout with movie grid and watchlist sidebar */}
       <main style={{ display: 'flex', flex: 1, marginTop: 80, alignItems: 'flex-start' }}>
         {/* Movie grid section */}
-        <MovieGrid />
+        <MovieGrid movies={moviesToShow} loading={loading} error={error} gridTitle={gridTitle} />
         {/* Watchlist sidebar */}
         <div style={{ minWidth: 0 }}>
           <WatchlistSidebar />
