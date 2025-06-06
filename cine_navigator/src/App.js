@@ -158,87 +158,6 @@ function MovieGrid({ movies, loading, error, gridTitle, watchlistIds = [], onAdd
   );
 }
 
-
-
-// PUBLIC_INTERFACE
-function TheaterSection() {
-  /**
-   * TheaterSection component: Shows nearby theaters (Google Maps placeholder & links).
-   */
-  return (
-    <section className="theater-section" style={{ margin: '48px auto 0', padding: '40px 0 0', background: 'none', maxWidth: 1024 }}>
-      <h2 style={{ color: 'var(--accent)', marginBottom: 16 }}>Nearby Theaters</h2>
-      <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        <div
-          style={{
-            flex: 2,
-            minWidth: 300,
-            background: 'var(--secondary)',
-            borderRadius: 8,
-            padding: 18,
-            marginBottom: 24,
-          }}
-        >
-          <div
-            style={{
-              width: '100%',
-              aspectRatio: '16/9',
-              background: 'rgba(255,255,255,0.045)',
-              border: '1.5px dashed var(--border-color)',
-              borderRadius: 6,
-              marginBottom: 14,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-secondary)',
-              fontSize: 21,
-            }}
-          >
-            [Google Maps Embed Here]
-          </div>
-          <div style={{ fontSize: 15, color: 'var(--text-secondary)' }}>
-            Enable location to see theaters near you and open directions.
-          </div>
-        </div>
-        <div
-          style={{
-            flex: 1,
-            minWidth: 220,
-            background: 'var(--secondary)',
-            borderRadius: 8,
-            padding: 18,
-            marginBottom: 24,
-          }}
-        >
-          <strong style={{ color: 'var(--accent)' }}>Top Nearby Theaters</strong>
-          <ul style={{ listStyle: 'none', margin: 12, padding: 0 }}>
-            <li style={{ marginBottom: 10 }}>
-              <a
-                href="https://www.google.com/maps/search/Theater/"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: 'var(--text-color)' }}
-              >
-                🎟️ Example Theater 1
-              </a>
-            </li>
-            <li style={{ marginBottom: 10 }}>
-              <a
-                href="https://www.google.com/maps/search/Movie+Theater/"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: 'var(--text-color)' }}
-              >
-                🎟️ Example Theater 2
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 /**
  * PUBLIC_INTERFACE
  * Main application container: Combines header, main content, watchlist, and theaters section.
@@ -350,9 +269,6 @@ function App() {
     : "Now Playing";
   const watchlistIds = watchlist.map((movie) => movie.id);
 
-  // Accessibility: Announce add/remove actions
-  // (optional, but omitted for brevity)
-
   // Add to watchlist handler (passed to MovieGrid)
   function handleAddToWatchlist(movie) {
     addToWatchlist(movie);
@@ -361,10 +277,19 @@ function App() {
       title: movie.title || '',
     });
   }
+
   function handleRemoveFromWatchlist(movieId) {
     removeFromWatchlist(movieId);
     // No GA event for removal
   }
+
+  // Handler for theater directions click (passed to NearbyTheaters)
+  const handleTheaterDirections = useCallback((theater) => {
+    logGA4Event('theater_directions_clicked', {
+      theater_name: theater?.name || '',
+      address: theater?.address || '',
+    });
+  }, []);
 
   return (
     <div className="app" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--primary)' }}>
@@ -390,8 +315,8 @@ function App() {
           />
         </div>
       </main>
-      {/* Theaters section below main grid */}
-      <TheaterSection />
+      {/* Theaters section below main grid (with analytics) */}
+      <NearbyTheaters onTheaterDirections={handleTheaterDirections} />
     </div>
   );
 }
