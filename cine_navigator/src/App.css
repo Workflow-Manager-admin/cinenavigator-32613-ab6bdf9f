@@ -31,8 +31,8 @@ body {
 }
 
 .navbar {
-  background-color: var(--base-dark);
-  padding: 16px;
+  background-color: var(--secondary);
+  padding: 16px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -42,6 +42,9 @@ body {
   width: 100%;
   box-sizing: border-box;
   z-index: 100;
+  box-shadow: 0 1px 12px 0 rgba(0,0,0,0.53);
+  backdrop-filter: blur(2px);
+  transition: background 0.2s;
 }
 
 .logo {
@@ -53,11 +56,12 @@ body {
 }
 
 .logo-symbol {
-  color: var(--base-light);
+  color: var(--accent);
+  font-size: 1.35em;
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1024px;
   margin: 0 auto;
   padding: 0 24px;
   width: 100%;
@@ -72,12 +76,14 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 24px;
+  background: none;
 }
 
 .subtitle {
-  color: var(--base-light);
+  color: var(--accent);
   font-weight: 500;
-  font-size: 1.1rem;
+  font-size: 1.12rem;
+  letter-spacing: 0.01em;
 }
 
 .title {
