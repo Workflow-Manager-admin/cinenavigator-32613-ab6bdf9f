@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import SearchBar from './components/SearchBar';
 import Watchlist, { useWatchlist } from './components/Watchlist';
+import NearbyTheaters from './components/NearbyTheaters';
+import { initGA4, logGA4Event } from './ga4';
 
 // PUBLIC_INTERFACE
 function Header({ onSearch, isSearching }) {
