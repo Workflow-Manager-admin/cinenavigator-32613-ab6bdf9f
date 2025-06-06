@@ -356,11 +356,14 @@ function App() {
   // Add to watchlist handler (passed to MovieGrid)
   function handleAddToWatchlist(movie) {
     addToWatchlist(movie);
-    // TODO: send event to GA4 in future
+    logGA4Event('movie_added_to_watchlist', {
+      movie_id: movie.id,
+      title: movie.title || '',
+    });
   }
   function handleRemoveFromWatchlist(movieId) {
     removeFromWatchlist(movieId);
-    // TODO: send event to GA4 in future
+    // No GA event for removal
   }
 
   return (
