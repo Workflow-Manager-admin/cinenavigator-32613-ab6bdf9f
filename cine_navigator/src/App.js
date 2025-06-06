@@ -239,12 +239,22 @@ function TheaterSection() {
   );
 }
 
-// PUBLIC_INTERFACE
+/**
+ * PUBLIC_INTERFACE
+ * Main application container: Combines header, main content, watchlist, and theaters section.
+ * Handles search state and now playing fallback logic.
+ * Initializes Google Analytics 4 event tracking using an environment variable.
+ */
 function App() {
-  /**
-   * Main application container: Combines header, main content, watchlist, and theaters section.
-   * Handles search state and now playing fallback logic.
-   */
+  // GA4 Measurement ID from env
+  const gaMeasurementId = process.env.REACT_APP_GA4_MEASUREMENT_ID;
+  // Initialize GA4 once
+  useEffect(() => {
+    if (gaMeasurementId) {
+      initGA4(gaMeasurementId);
+    }
+    // else: skip analytics (degrades gracefully)
+  }, [gaMeasurementId]);
 
   // State for Now Playing
   const [nowPlaying, setNowPlaying] = useState([]);
@@ -288,7 +298,7 @@ function App() {
     fetchNowPlaying();
   }, [apiKey]);
 
-  // Search handler
+  // Search handler with GA4 event
   async function handleMovieSearch(query) {
     setSearchQuery(query);
     setSearchResults([]);
@@ -308,6 +318,8 @@ function App() {
       if (!res.ok) throw new Error("TMDB search failed. Please check your API key.");
       const data = await res.json();
       setSearchResults(data.results || []);
+      // GA4 event: movie_searched
+      logGA4Event('movie_searched', { query });
     } catch (err) {
       setSearchError(
         err.message || "Something went wrong while searching for movies."
